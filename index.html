@@ -134,7 +134,7 @@
       <span id="qNum"></span>
       <span><span id="qScore"></span>　<button class="link" id="fsBtn">全画面＋キー固定</button>　<button class="link" id="quitBtn">やめる</button></span>
     </div>
-    <div class="warn hidden" id="fsTip">このページでは自動で全画面にできません。<b>F11キー</b>でブラウザごと全画面にできます（もう一度F11で戻ります）。キー固定まで使うには GitHub 版（https://kit0427.github.io/sheets-shortcut-trainer/）を開いてください。</div>
+    <div class="warn hidden" id="fsTip"></div>
     <div class="progress"><div id="bar"></div></div>
     <div><span class="cat" id="qCat"></span><span class="pri" id="qPri"></span></div>
     <div class="question" id="qText"></div>
@@ -675,7 +675,11 @@ $("fsBtn").onclick = async () => {
       await navigator.keyboard.lock().then(() => { $("fsBtn").textContent = "全画面を終了（キー固定中・Esc長押しでも終了）"; }).catch(() => {});
     }
   } catch (err) {
-    $("fsTip").classList.toggle("hidden");
+    const inGas = typeof google !== "undefined" && google.script;
+    $("fsTip").innerHTML = inGas
+      ? 'このページ（Google版）では全画面にできません。全画面＋キー固定を使うには <a href="https://kit0427.github.io/sheets-shortcut-trainer/" target="_blank" rel="noopener">こちらの版</a> を開いてください。<b>F11キー</b>でブラウザごと全画面にすることはできます。'
+      : '全画面にできませんでした。もう一度ボタンを押すか、<b>F11キー</b>でブラウザごと全画面にしてください。';
+    $("fsTip").classList.remove("hidden");
   }
 };
 document.addEventListener("fullscreenchange", () => {
