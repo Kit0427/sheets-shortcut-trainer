@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>スプレッドシート ショートカット練習</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --ink: #1f2328; --sub: #667085; --line: #e3e6ea;
+    --accent: #188038; --accent-soft: #e6f4ea; --bad: #c5221f; --bad-soft: #fce8e6;
+    --key: #fafbfc; --keyline: #c9ced6;
+  }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin: 0; font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+         background: var(--bg); color: var(--ink); line-height: 1.6; }
+  header { padding: 18px 24px; border-bottom: 1px solid var(--line); background: var(--card);
+           display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  header h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  header .meta { color: var(--sub); font-size: 13px; min-width: 0; overflow-wrap: anywhere; }
+  main { width: 100%; max-width: 760px; margin: 24px auto; padding: 0 16px 48px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  h2 { font-size: 15px; margin: 0 0 12px; font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 18px; }
+  label.chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--line);
+               border-radius: 999px; cursor: pointer; font-size: 14px; user-select: none; background: #fff; }
+  label.chip:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+  label.chip input { accent-color: var(--accent); margin: 0; }
+  .chip .n { color: var(--sub); font-size: 12px; }
+  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: #fff;
+           padding: 8px 16px; color: var(--ink); }
+  button:hover { background: #f1f3f4; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; padding: 10px 24px; }
+  button.primary:hover { filter: brightness(1.08); }
+  button:disabled { opacity: .45; cursor: default; }
+  button.small { padding: 4px 10px; font-size: 13px; }
+  .muted { color: var(--sub); font-size: 13px; }
+  .hidden { display: none !important; }
+
+  /* quiz */
+  .progress { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+  .progress > div { height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+  .qtop { display: flex; justify-content: space-between; align-items: center; color: var(--sub); font-size: 13px; margin-bottom: 8px; }
+  .cat { display: inline-block; font-size: 12px; color: var(--sub); border: 1px solid var(--line); border-radius: 4px; padding: 0 8px; }
+  .pri { font-size: 12px; margin-left: 6px; }
+  .question { font-size: 26px; font-weight: 600; margin: 18px 0 28px; text-align: center; min-height: 2.4em; }
+  .stage { min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+           border: 2px dashed var(--line); border-radius: 12px; padding: 20px; transition: background .15s, border-color .15s; }
+  .stage.ok { background: var(--accent-soft); border-color: var(--accent); border-style: solid; }
+  .stage.ng { background: var(--bad-soft); border-color: var(--bad); border-style: solid; }
+  .keys { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; min-height: 40px; }
+  kbd { display: inline-block; min-width: 34px; padding: 4px 10px; font: 600 16px/1.4 "Consolas", "Segoe UI", monospace; text-align: center;
+        background: var(--key); border: 1px solid var(--keyline); border-bottom-width: 3px; border-radius: 6px; }
+  kbd.dim { opacity: .45; }
+  .plus { color: var(--sub); }
+  .then { color: var(--sub); font-size: 13px; margin: 0 4px; }
+  .msg { font-size: 17px; min-height: 1.6em; text-align: center; }
+  .msg.ok { color: var(--accent); font-weight: 600; }
+  .msg.ng { color: var(--bad); font-weight: 600; }
+  .answer { margin-top: 16px; text-align: center; min-height: 48px; }
+  .answer .lbl { font-size: 12px; color: var(--sub); }
+  .controls { display: flex; align-items: center; margin-top: 24px; gap: 8px; flex-wrap: wrap; min-height: 48px; }
+  .btns { display: flex; gap: 8px; }
+  button.next { font-size: 17px; padding: 12px 32px; }
+  button.next .sub { font-size: 11px; font-weight: 400; opacity: .85; border: 1px solid rgba(255,255,255,.6); border-radius: 4px; padding: 0 4px; margin-left: 6px; }
+  button.link { border: none; background: none; padding: 0; color: var(--sub); text-decoration: underline; font-size: 13px; }
+  button.link:hover { background: none; color: var(--ink); }
+  .stage .lbl { font-size: 13px; color: var(--sub); min-height: 1.4em; }
+  .warn { background: #fef7e0; border: 1px solid #f9e3a3; color: #7a5b00; border-radius: 8px; padding: 8px 12px; font-size: 13px; margin-bottom: 12px; }
+
+  /* result */
+  .score { font-size: 44px; font-weight: 700; text-align: center; margin: 8px 0 0; }
+  .score small { font-size: 18px; color: var(--sub); font-weight: 500; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--sub); font-weight: 500; font-size: 12px; }
+  td.k { white-space: nowrap; font-family: Consolas, monospace; }
+  .badge-ng { color: var(--bad); font-weight: 600; }
+  .badge-skip { color: var(--sub); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Googleスプレッドシート ショートカット練習</h1>
+  <div class="meta" id="hdrMeta"></div>
+</header>
+<main>
+
+<!-- ===== 設定画面 ===== -->
+<section id="setup">
+  <div class="card">
+    <h2>優先度</h2>
+    <div class="row" id="priBox"></div>
+    <h2>カテゴリ</h2>
+    <div class="row" id="catBox"></div>
+    <div class="row" style="margin-top:-8px"><button class="small" id="catAll">すべて選択</button><button class="small" id="catNone">すべて解除</button></div>
+    <h2>モード</h2>
+    <div class="row">
+      <label class="chip"><input type="radio" name="mode" value="test" checked>テスト（答えは隠す）</label>
+      <label class="chip"><input type="radio" name="mode" value="practice">練習（答えを見ながら）</label>
+    </div>
+    <h2>出題順</h2>
+    <div class="row">
+      <label class="chip"><input type="radio" name="order" value="random" checked>ランダム</label>
+      <label class="chip"><input type="radio" name="order" value="seq">シートの順番</label>
+      <label class="chip"><input type="radio" name="order" value="weak">苦手な順</label>
+    </div>
+    <h2>出題数</h2>
+    <div class="row">
+      <label class="chip"><input type="radio" name="count" value="10">10問</label>
+      <label class="chip"><input type="radio" name="count" value="20" checked>20問</label>
+      <label class="chip"><input type="radio" name="count" value="0">すべて</label>
+    </div>
+    <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap">
+      <button class="primary" id="startBtn" disabled>スタート</button>
+      <span class="muted" id="poolInfo">スプレッドシートから読み込み中…</span>
+    </div>
+  </div>
+  <div class="card muted">
+    <b>使い方</b><br>
+    ・表示された操作のショートカットを実際に押してください。間違えると正解が表示されます。「次へ」ボタンか Enter で次の問題へ進みます。<br>
+    ・<b>日本語入力（IME）はオフ</b>にしてください。オンだとキーが正しく読み取れません。<br>
+    ・「Alt+I、R、B」のような順番に押すキーは、1つずつ順に押せばOKです（Altを押しっぱなしでも可）。<br>
+    ・Ctrl+W / Ctrl+T などブラウザが先に反応するキーは、出題中の「全画面＋キー固定」を押すと練習できます（終了はEscを長押し）。<br>
+    ・成績はこのブラウザに保存され、「苦手な順」で復習できます。
+  </div>
+</section>
+
+<!-- ===== 出題画面 ===== -->
+<section id="quiz" class="hidden">
+  <div class="card">
+    <div class="warn hidden" id="imeWarn">日本語入力（IME）がオンになっています。半角英数に切り替えてください。</div>
+    <div class="qtop">
+      <span id="qNum"></span>
+      <span><span id="qScore"></span>　<button class="link" id="fsBtn">全画面＋キー固定</button>　<button class="link" id="quitBtn">やめる</button></span>
+    </div>
+    <div class="warn hidden" id="fsTip">このページでは自動で全画面にできません。<b>F11キー</b>でブラウザごと全画面にできます（もう一度F11で戻ります）。キー固定まで使うには GitHub 版（https://kit0427.github.io/sheets-shortcut-trainer/）を開いてください。</div>
+    <div class="progress"><div id="bar"></div></div>
+    <div><span class="cat" id="qCat"></span><span class="pri" id="qPri"></span></div>
+    <div class="question" id="qText"></div>
+    <div class="stage" id="stage">
+      <div class="lbl" id="liveLbl">このままキーボードでショートカットを押してください</div>
+      <div class="keys" id="live"></div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div class="answer" id="answer"></div>
+    <div class="controls">
+      <div class="btns" id="askBtns">
+        <button id="hintBtn">答えを見る</button>
+        <button id="skipBtn">スキップ</button>
+      </div>
+      <div class="btns" style="margin-left:auto">
+        <button class="primary next hidden" id="nextBtn">次へ <span class="sub">Enter</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 結果画面 ===== -->
+<section id="result" class="hidden">
+  <div class="card">
+    <div class="muted" style="text-align:center">一発正解</div>
+    <div class="score" id="rScore"></div>
+    <div class="muted" style="text-align:center" id="rTime"></div>
+    <div style="display:flex; gap:8px; justify-content:center; margin-top:20px; flex-wrap:wrap">
+      <button class="primary" id="retryWrongBtn">間違えた問題だけもう一度</button>
+      <button id="againBtn">同じ条件でもう一度</button>
+      <button id="backBtn">設定に戻る</button>
+    </div>
+  </div>
+  <div class="card" id="rListCard">
+    <h2>間違えた・スキップした問題</h2>
+    <table><thead><tr><th>操作</th><th>正解</th><th>あなたの入力</th></tr></thead><tbody id="rList"></tbody></table>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* データはスプレッドシートから読み込みます（Code.gs の getShortcuts） */
+
+/* ---------- キー定義 ---------- */
+// 記号キーはキーボード配列（US/JIS）で位置が違うので、e.key と e.code の両方から候補を作る
+const SYMBOL_LABEL = { Slash:"/", Semicolon:";", Backslash:"\\", Period:".", Equal:"=", Minus:"-", Plus:"+", Tilde:"~" };
+// Shift を押さないと入力できない記号（Shiftの有無を問わない）
+const SHIFT_FREE = new Set(["Plus", "Tilde"]);
+// 目標キーごとに「これが来たら正解」とみなすトークン
+const ACCEPT = { Plus: ["Plus", "Equal", "Semicolon"], Equal: ["Equal", "Plus"] };
+const ARROW = { Up:"↑", Down:"↓", Left:"←", Right:"→" };
+
+function parseStep(s) {
+  const parts = s.trim().split("+");
+  const step = { ctrl:false, alt:false, shift:false, key:null };
+  for (const p of parts) {
+    if (p === "Ctrl") step.ctrl = true;
+    else if (p === "Alt") step.alt = true;
+    else if (p === "Shift") step.shift = true;
+    else step.key = p;
+  }
+  return step;
+}
+function parseSpec(spec) {
+  return spec.split(" | ").map(alt => alt.split(" > ").map(parseStep));
+}
+
+// シートの表記（例: "Alt+I、R、B" / "Ctrl+Alt を押しながら E、P" / "Ctrl+↑ または Ctrl+↓"）を判定用に変換
+const KEYNAME = { "/":"Slash", ";":"Semicolon", "\\":"Backslash", "¥":"Backslash", ".":"Period", "=":"Equal", "-":"Minus",
+  "~":"Tilde", "+":"Plus", "Plus":"Plus", "↑":"Up", "↓":"Down", "←":"Left", "→":"Right",
+  "SPACE":"Space", "ENTER":"Enter", "ESC":"Esc", "ESCAPE":"Esc", "HOME":"Home", "END":"End", "TAB":"Tab",
+  "DELETE":"Delete", "BACKSPACE":"Backspace", "PAGEUP":"PageUp", "PAGEDOWN":"PageDown" };
+const MODS = { CTRL:"ctrl", ALT:"alt", SHIFT:"shift" };
+function keyName(k) {
+  k = k.trim(); if (!k) return null;
+  if (KEYNAME[k]) return KEYNAME[k];
+  const u = k.toUpperCase();
+  if (KEYNAME[u]) return KEYNAME[u];
+  if (/^F([1-9]|1[0-2])$/.test(u)) return u;
+  if (/^[A-Z0-9]$/.test(u)) return u;
+  return null;
+}
+function splitPlus(s) { // "Ctrl+Alt++" や "Ctrl+Alt+\"+\"" に対応
+  s = s.replace(/"\+"/g, "Plus").replace(/\+\+$/, "+Plus");
+  return s.split("+").map(x => x.trim()).filter(x => x);
+}
+function chord(tokens) { // ["Ctrl","Alt","E","S"] → mods と キー列
+  const step = { ctrl:false, alt:false, shift:false }, keys = [];
+  for (const t of tokens) {
+    const m = MODS[t.toUpperCase()];
+    if (m) step[m] = true; else { const k = keyName(t); if (!k) return null; keys.push(k); }
+  }
+  return { step, keys };
+}
+function parseDisplay(disp) {
+  let s = String(disp).trim().replace(/／/g, "/");
+  if (!s) return null;
+  s = s.replace(/\/(?=\s*(?:Ctrl|Alt|Shift)\+)/g, "/ または ");
+  const alts = [];
+  for (const alt of s.split(/\s*(?:または|\bor\b)\s*/)) {
+    let steps = [];
+    const hold = alt.match(/^(.*?)\s*を押しながら\s*(.+)$/);
+    if (hold) {
+      const c = chord(splitPlus(hold[1])); if (!c) return null;
+      for (const k of hold[2].split(/[、,，]/)) { const kk = keyName(k); if (!kk) return null; steps.push({ ...c.step, key: kk }); }
+    } else {
+      const parts = alt.split(/[、,，]/);
+      const c = chord(splitPlus(parts[0])); if (!c || !c.keys.length) return null;
+      steps.push({ ...c.step, key: c.keys[0] });
+      for (const k of c.keys.slice(1)) steps.push({ ctrl:false, alt:false, shift:false, key: k });
+      for (const p of parts.slice(1)) { const kk = keyName(p); if (!kk) return null; steps.push({ ctrl:false, alt:false, shift:false, key: kk }); }
+    }
+    if (!steps.length) return null;
+    alts.push(steps);
+  }
+  return alts.length ? alts : null;
+}
+function buildItems(rows) { // rows: [{cat, op, disp, pri}]
+  const out = [], bad = [];
+  rows.forEach((r, i) => {
+    const alts = parseDisplay(r.disp);
+    if (!alts) { bad.push(r); return; }
+    out.push({ id: i + 1, cat: r.cat, op: r.op, disp: r.disp, alts, pri: r.pri || "低", key: r.cat + "|" + r.op + "|" + r.disp });
+  });
+  return { items: out, bad };
+}
+const FALLBACK_RAW = [
+["一般的な操作","列を選択","Ctrl+Space","Ctrl+Space","高"],
+["一般的な操作","行を選択","Shift+Space","Shift+Space","高"],
+["一般的な操作","すべて選択","Ctrl+A","Ctrl+A","高"],
+["一般的な操作","元に戻す","Ctrl+Z","Ctrl+Z","高"],
+["一般的な操作","1つ後の操作に戻す","Ctrl+Y","Ctrl+Y","中"],
+["一般的な操作","1つ前の操作に戻す","Ctrl+Shift+Z","Ctrl+Shift+Z","高"],
+["一般的な操作","同じ操作の繰り返し","F4","F4","高"],
+["一般的な操作","検索","Ctrl+F","Ctrl+F","高"],
+["一般的な操作","検索と置換","Ctrl+H","Ctrl+H","高"],
+["一般的な操作","範囲へコピー","Ctrl+Enter","Ctrl+Enter","低"],
+["一般的な操作","下方向へコピー","Ctrl+D","Ctrl+D","低"],
+["一般的な操作","右方向へコピー","Ctrl+R","Ctrl+R","低"],
+["一般的な操作","開く","Ctrl+O","Ctrl+O","低"],
+["一般的な操作","印刷","Ctrl+P","Ctrl+P","低"],
+["一般的な操作","コピー","Ctrl+C","Ctrl+C","高"],
+["一般的な操作","切り取り","Ctrl+X","Ctrl+X","中"],
+["一般的な操作","貼り付け","Ctrl+V","Ctrl+V","高"],
+["一般的な操作","値のみ貼り付け","Ctrl+Shift+V","Ctrl+Shift+V","高"],
+["一般的な操作","関数のみ貼り付け","Alt+E+S+F","Alt+E > S > F","高"],
+["一般的な操作","一般的なキーボード ショートカットを表示","Ctrl+/","Ctrl+Slash","低"],
+["一般的な操作","新しいシートを挿入","Shift+F11","Shift+F11","高"],
+["一般的な操作","コンパクト コントロール","Ctrl+Shift+F","Ctrl+Shift+F","低"],
+["一般的な操作","入力ツールのオン、オフ（ラテン系以外の言語のスプレッドシートで使用可）","Ctrl+Shift+K","Ctrl+Shift+K","低"],
+["一般的な操作","入力ツールを選択","Ctrl+Alt+Shift+K","Ctrl+Alt+Shift+K","低"],
+["一般的な操作","ツール検索（旧称: メニューを検索）","Alt+/","Alt+Slash","低"],
+["一般的な操作","シート名を変更","Alt+1","Alt+1","低"],
+["一般的な操作","範囲を表に変換","Ctrl+Alt+T","Ctrl+Alt+T","低"],
+["セルの書式設定","太字","Ctrl+B","Ctrl+B","高"],
+["セルの書式設定","下線","Ctrl+U","Ctrl+U","低"],
+["セルの書式設定","斜体","Ctrl+I","Ctrl+I","低"],
+["セルの書式設定","取り消し線","Alt+Shift+5","Alt+Shift+5","中"],
+["セルの書式設定","中央揃え","Ctrl+Shift+E","Ctrl+Shift+E","高"],
+["セルの書式設定","左揃え","Ctrl+Shift+L","Ctrl+Shift+L","高"],
+["セルの書式設定","右揃え","Ctrl+Shift+R","Ctrl+Shift+R","高"],
+["セルの書式設定","上枠線を適用","Alt+Shift+1","Alt+Shift+1","高"],
+["セルの書式設定","右枠線を適用","Alt+Shift+2","Alt+Shift+2","高"],
+["セルの書式設定","下枠線を適用","Alt+Shift+3","Alt+Shift+3","高"],
+["セルの書式設定","左枠線を適用","Alt+Shift+4","Alt+Shift+4","高"],
+["セルの書式設定","枠線を削除","Alt+Shift+6","Alt+Shift+6","高"],
+["セルの書式設定","外枠線を適用","Alt+Shift+7","Alt+Shift+7","高"],
+["セルの書式設定","リンクを挿入","Ctrl+K","Ctrl+K","高"],
+["セルの書式設定","時刻を挿入","Ctrl+Shift+;","Ctrl+Shift+Semicolon","低"],
+["セルの書式設定","日付を挿入","Ctrl+;","Ctrl+Semicolon","低"],
+["セルの書式設定","日付と時刻を挿入","Ctrl+Alt+Shift+;","Ctrl+Alt+Shift+Semicolon","低"],
+["セルの書式設定","表示形式を小数に設定","Ctrl+Shift+1","Ctrl+Shift+1","中"],
+["セルの書式設定","表示形式を時刻に設定","Ctrl+Shift+2","Ctrl+Shift+2","中"],
+["セルの書式設定","表示形式を日付に設定","Ctrl+Shift+3","Ctrl+Shift+3","中"],
+["セルの書式設定","表示形式を通貨に設定","Ctrl+Shift+4","Ctrl+Shift+4","中"],
+["セルの書式設定","表示形式をパーセンテージに設定","Ctrl+Shift+5","Ctrl+Shift+5","中"],
+["セルの書式設定","表示形式を指数に設定","Ctrl+Shift+6","Ctrl+Shift+6","中"],
+["セルの書式設定","表示形式をカスタム形式に変換","Alt+O+N+B","Alt+O > N > B","高"],
+["セルの書式設定","書式をクリア","Ctrl+\\","Ctrl+Backslash","低"],
+["スプレッドシートの操作","行の先頭に移動","Home","Home","低"],
+["スプレッドシートの操作","シートの先頭に移動","Ctrl+Home","Ctrl+Home","低"],
+["スプレッドシートの操作","行の末尾に移動","End","End","低"],
+["スプレッドシートの操作","シートの末尾に移動","Ctrl+End","Ctrl+End","低"],
+["スプレッドシートの操作","アクティブセルまでスクロール","Ctrl+↑","Ctrl+Up","高"],
+["スプレッドシートの操作","次のシートに移動","Alt+↓","Alt+Down","高"],
+["スプレッドシートの操作","前のシートに移動","Alt+↑","Alt+Up","高"],
+["スプレッドシートの操作","シートリストを表示","Alt+Shift+K","Alt+Shift+K","高"],
+["スプレッドシートの操作","ハイパーリンクを開く","Alt+Enter","Alt+Enter","高"],
+["スプレッドシートの操作","データ探索を開く","Ctrl+Alt+Shift+I","Ctrl+Alt+Shift+I","低"],
+["スプレッドシートの操作","サイドパネルに移動","Ctrl+Alt+.","Ctrl+Alt+Period","低"],
+["スプレッドシートの操作","スプレッドシートからフォーカスを外す","Ctrl+Alt+Shift+M","Ctrl+Alt+Shift+M","低"],
+["スプレッドシートの操作","合計機能に移動（セル範囲を選択している場合）","Alt+Shift+Q","Alt+Shift+Q","低"],
+["スプレッドシートの操作","ポップアップにフォーカスを移動（リンク、ブックマーク、画像）","Ctrl+Alt を押しながら E、P","Ctrl+Alt+E > Ctrl+Alt+P","低"],
+["スプレッドシートの操作","フィルタ処理したセルのプルダウン メニューを開く","Ctrl+Alt+R","Ctrl+Alt+R","低"],
+["スプレッドシートの操作","変更履歴を開く","Ctrl+Alt+Shift+H","Ctrl+Alt+Shift+H","低"],
+["スプレッドシートの操作","図形描画エディタを閉じる","Shift+Esc","Shift+Esc","低"],
+["メモやコメントの編集","メモを挿入、編集","Shift+F2","Shift+F2","高"],
+["メモやコメントの編集","コメントを挿入、編集","Ctrl+Alt+M","Ctrl+Alt+M","低"],
+["メモやコメントの編集","コメントのディスカッション スレッドを開く","Ctrl+Alt+Shift+A","Ctrl+Alt+Shift+A","低"],
+["メモやコメントの編集","現在のコメントを入力","Ctrl+Alt を押しながら E、C","Ctrl+Alt+E > Ctrl+Alt+C","低"],
+["メモやコメントの編集","次のコメントに移動","Ctrl+Alt を押しながら N、C","Ctrl+Alt+N > Ctrl+Alt+C","低"],
+["メモやコメントの編集","前のコメントに移動","Ctrl+Alt を押しながら P、C","Ctrl+Alt+P > Ctrl+Alt+C","低"],
+["選択したコメントでの操作","現在のコメントに返信","R","R","低"],
+["選択したコメントでの操作","次のコメントに移動","J","J","低"],
+["選択したコメントでの操作","前のコメントに移動","K","K","低"],
+["選択したコメントでの操作","現在のコメントを解決","E","E","低"],
+["選択したコメントでの操作","現在のコメントを終了","U","U","低"],
+["メニューの操作","[ファイル] メニュー","Alt+F","Alt+F","高"],
+["メニューの操作","[編集] メニュー","Alt+E","Alt+E","高"],
+["メニューの操作","[表示] メニュー","Alt+V","Alt+V","高"],
+["メニューの操作","[挿入] メニュー","Alt+I","Alt+I","高"],
+["メニューの操作","[表示形式] メニュー","Alt+O","Alt+O","高"],
+["メニューの操作","[データ] メニュー","Alt+D","Alt+D","高"],
+["メニューの操作","[ツール] メニュー","Alt+T","Alt+T","高"],
+["メニューの操作","挿入メニューを開く（セルを選択している場合）","Ctrl+Alt+=","Ctrl+Alt+Equal","低"],
+["メニューの操作","削除メニューを開く（セルを選択している場合）","Ctrl+Alt+-","Ctrl+Alt+Minus","低"],
+["メニューの操作","[フォーム] メニュー（フォームにリンクされているとき）","Alt+M","Alt+M","低"],
+["メニューの操作","[アドオン] メニュー","Alt+N","Alt+N","低"],
+["メニューの操作","[ヘルプ] メニュー","Alt+H","Alt+H","低"],
+["メニューの操作","[ユーザー補助機能] メニュー（スクリーン リーダー有効時）","Alt+A","Alt+A","低"],
+["メニューの操作","シートメニュー（コピーの作成、削除などのシート操作）","Alt+Shift+S","Alt+Shift+S","低"],
+["メニューの操作","コンテキスト メニュー","Ctrl+Shift+/ または Shift+F10","Ctrl+Shift+Slash | Shift+F10","低"],
+["メニューの操作","表の列メニュー","Ctrl+Alt+/","Ctrl+Alt+Slash","低"],
+["行と列の追加や変更","行を上に挿入（行を選択している場合）","Ctrl+Alt+\"+\"","Ctrl+Alt+Plus","高"],
+["行と列の追加や変更","行を下に挿入","Alt+I、R、B","Alt+I > R > B","高"],
+["行と列の追加や変更","列を左に挿入（列を選択している場合）","Ctrl+Alt+\"+\"","Ctrl+Alt+Plus","高"],
+["行と列の追加や変更","列を右に挿入","Alt+I、C、O","Alt+I > C > O","高"],
+["行と列の追加や変更","行を削除（行を選択している場合）","Ctrl+Alt+-","Ctrl+Alt+Minus","高"],
+["行と列の追加や変更","列を削除（列を選択している場合）","Ctrl+Alt+-","Ctrl+Alt+Minus","高"],
+["行と列の追加や変更","行を非表示","Ctrl+Alt+9","Ctrl+Alt+9","低"],
+["行と列の追加や変更","行を再表示","Ctrl+Shift+9","Ctrl+Shift+9","低"],
+["行と列の追加や変更","列を非表示","Ctrl+Alt+0","Ctrl+Alt+0","低"],
+["行と列の追加や変更","列を再表示","Ctrl+Shift+0","Ctrl+Shift+0","低"],
+["行と列の追加や変更","行または列をグループ化","Alt+Shift+→","Alt+Shift+Right","中"],
+["行と列の追加や変更","行または列のグループ化を解除","Alt+Shift+←","Alt+Shift+Left","中"],
+["行と列の追加や変更","グループ化した行または列を展開","Alt+Shift+↓","Alt+Shift+Down","中"],
+["行と列の追加や変更","グループ化した行または列を折りたたむ","Alt+Shift+↑","Alt+Shift+Up","中"],
+["数式の使用","すべての数式を表示","Ctrl+~","Ctrl+Tilde","低"],
+["数式の使用","配列数式を挿入","Ctrl+Shift+Enter","Ctrl+Shift+Enter","低"],
+["数式の使用","拡張した配列数式を折りたたむ","Ctrl+E","Ctrl+E","低"],
+["数式の使用","数式ヘルプを表示、非表示（数式の入力時）","Shift+F1","Shift+F1","低"],
+["数式の使用","数式ヘルプの全表示、コンパクト表示（数式の入力時）","F1","F1","低"],
+["数式の使用","絶対参照、相対参照（数式の入力時）","F4","F4","高"],
+["数式の使用","数式結果のプレビューを切り替え（数式の入力時）","F9","F9","低"],
+["数式の使用","数式バーをサイズ変更（上下に移動）","Ctrl+↑ または Ctrl+↓","Ctrl+Up | Ctrl+Down","低"],
+["数式の使用","数式の範囲の選択を切り替え（数式の入力時）","F2","F2","低"],
+["スクリーン リーダーのサポート","スクリーン リーダーのサポートを有効にする","Ctrl+Alt+Z","Ctrl+Alt+Z","低"],
+["スクリーン リーダーのサポート","点字サポートを有効にする","Ctrl+Alt+H","Ctrl+Alt+H","低"],
+["スクリーン リーダーのサポート","列を読み上げる","Ctrl+Alt+Shift+C","Ctrl+Alt+Shift+C","低"],
+["スクリーン リーダーのサポート","行を読み上げる","Ctrl+Alt+Shift+R","Ctrl+Alt+Shift+R","低"],
+];
+let ITEMS = [];
+
+// イベント → 押されたキーのトークン候補
+function tokensFromEvent(e) {
+  const t = new Set();
+  const c = e.code || "";
+  let m;
+  if ((m = c.match(/^Key([A-Z])$/))) t.add(m[1]);
+  else if ((m = c.match(/^(?:Digit|Numpad)([0-9])$/))) t.add(m[1]);
+  else if ((m = c.match(/^F([0-9]{1,2})$/))) t.add("F" + m[1]);
+  else if ((m = c.match(/^Arrow(Up|Down|Left|Right)$/))) t.add(m[1]);
+  const codeMap = {
+    Space:"Space", Enter:"Enter", NumpadEnter:"Enter", Escape:"Esc", Home:"Home", End:"End", Tab:"Tab",
+    Backspace:"Backspace", Delete:"Delete", PageUp:"PageUp", PageDown:"PageDown",
+    Slash:"Slash", NumpadDivide:"Slash", Semicolon:"Semicolon", Period:"Period", NumpadDecimal:"Period",
+    Minus:"Minus", NumpadSubtract:"Minus", NumpadAdd:"Plus",
+    Backslash:"Backslash", IntlYen:"Backslash", IntlRo:"Backslash", Backquote:"Tilde",
+  };
+  if (codeMap[c]) t.add(codeMap[c]);
+  if (c === "Equal") { t.add("Equal"); }   // US: =+ キー / JIS: ^~ キー（e.key で判別）
+  const keyMap = { ";":"Semicolon", "+":"Plus", "=":"Equal", "-":"Minus", "/":"Slash", "?":"Slash", ".":"Period",
+                   "\\":"Backslash", "¥":"Backslash", "~":"Tilde", " ":"Space" };
+  if (keyMap[e.key]) t.add(keyMap[e.key]);
+  if (e.key && /^[a-zA-Z]$/.test(e.key) && t.size === 0) t.add(e.key.toUpperCase());
+  // JIS配列の ^~ キー（code=Equal）は "=" ではない
+  if (c === "Equal" && (e.key === "^" || e.key === "~")) { t.delete("Equal"); t.add("Tilde"); }
+  return t;
+}
+function modsFromEvent(e) {
+  return { ctrl: e.ctrlKey || e.metaKey, alt: e.altKey, shift: e.shiftKey };
+}
+function stepMatches(step, tokens, mods, heldOk) {
+  const accept = ACCEPT[step.key] || [step.key];
+  if (!accept.some(k => tokens.has(k))) return false;
+  for (const m of ["ctrl", "alt", "shift"]) {
+    if (m === "shift" && SHIFT_FREE.has(step.key)) continue;
+    if (step[m] && !mods[m]) return false;
+    if (!step[m] && mods[m] && !(heldOk && heldOk[m])) return false;
+  }
+  return true;
+}
+
+/* ---------- 表示ヘルパ ---------- */
+function keyLabel(k) {
+  if (SYMBOL_LABEL[k]) return SYMBOL_LABEL[k];
+  if (ARROW[k]) return ARROW[k];
+  return k;
+}
+function kbd(text, dim) { return `<kbd${dim ? ' class="dim"' : ""}>${escapeHtml(text)}</kbd>`; }
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c])); }
+function stepHtml(step, dim) {
+  const parts = [];
+  if (step.ctrl) parts.push(kbd("Ctrl", dim));
+  if (step.alt) parts.push(kbd("Alt", dim));
+  if (step.shift) parts.push(kbd("Shift", dim));
+  if (step.key) parts.push(kbd(keyLabel(step.key), dim));
+  return parts.join('<span class="plus">+</span>');
+}
+function altHtml(steps) { return steps.map(s => stepHtml(s)).join('<span class="then">→</span>'); }
+function answerHtml(item) {
+  return item.alts.map(altHtml).join('<span class="then">または</span>');
+}
+function pressedText(e) {
+  const m = modsFromEvent(e), parts = [];
+  if (m.ctrl) parts.push("Ctrl"); if (m.alt) parts.push("Alt"); if (m.shift) parts.push("Shift");
+  if (!["Control","Alt","Shift","Meta"].includes(e.key)) {
+    const tk = [...tokensFromEvent(e)][0];
+    parts.push(tk ? keyLabel(tk) : e.key);
+  }
+  return parts.join("+");
+}
+
+/* ---------- 成績の保存 ---------- */
+const STORE = "sheets-shortcut-stats-v1";
+let stats = {};
+try { stats = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (_) { stats = {}; }
+function record(item, ok) {
+  const s = stats[item.key] || { ok: 0, ng: 0 };
+  ok ? s.ok++ : s.ng++;
+  stats[item.key] = s;
+  try { localStorage.setItem(STORE, JSON.stringify(stats)); } catch (_) {}
+}
+function weakness(item) {
+  const s = stats[item.key];
+  if (!s) return 0.5; // 未出題は中間
+  return (s.ng + 1) / (s.ok + s.ng + 2);
+}
+
+/* ---------- 設定画面 ---------- */
+const $ = id => document.getElementById(id);
+function initSetup(skipped) {
+const PRIS = ["高", "中", "低"];
+const CATS = [...new Set(ITEMS.map(i => i.cat))];
+$("priBox").innerHTML = PRIS.map(p =>
+  `<label class="chip"><input type="checkbox" name="pri" value="${p}" ${p !== "低" ? "checked" : ""}>${p} <span class="n">${ITEMS.filter(i => i.pri === p).length}</span></label>`).join("");
+$("catBox").innerHTML = CATS.map(c =>
+  `<label class="chip"><input type="checkbox" name="cat" value="${escapeHtml(c)}" checked>${escapeHtml(c)} <span class="n">${ITEMS.filter(i => i.cat === c).length}</span></label>`).join("");
+$("catAll").onclick = () => { document.querySelectorAll('input[name=cat]').forEach(x => x.checked = true); updatePool(); };
+$("catNone").onclick = () => { document.querySelectorAll('input[name=cat]').forEach(x => x.checked = false); updatePool(); };
+document.querySelectorAll("#setup input").forEach(x => x.addEventListener("change", updatePool));
+updatePool();
+const totalTried = Object.values(stats).reduce((a, s) => a + s.ok + s.ng, 0);
+$("hdrMeta").textContent = `全${ITEMS.length}件` + (totalTried ? ` ／ これまでの回答 ${totalTried} 回` : "");
+  if (skipped && skipped.length) $("hdrMeta").textContent += ` ／ 読み取れなかった ${skipped.length} 件: ` + skipped.map(r => r.op + "(" + r.disp + ")").join(", ");
+}
+
+function checked(name) { return [...document.querySelectorAll(`input[name=${name}]:checked`)].map(x => x.value); }
+function radio(name) { return document.querySelector(`input[name=${name}]:checked`).value; }
+function pool() {
+  const ps = checked("pri"), cs = checked("cat");
+  return ITEMS.filter(i => ps.includes(i.pri) && cs.includes(i.cat));
+}
+function updatePool() {
+  const n = pool().length;
+  $("poolInfo").textContent = `対象 ${n} 問`;
+  $("startBtn").disabled = n === 0;
+}
+
+/* ---------- 出題 ---------- */
+let Q = null; // 現在のセッション
+
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function buildList(items) {
+  const order = radio("order");
+  let list = items.slice();
+  if (order === "random") shuffle(list);
+  else if (order === "weak") list = shuffle(list).sort((a, b) => weakness(b) - weakness(a));
+  const n = +radio("count");
+  return n ? list.slice(0, n) : list;
+}
+
+function startSession(items) {
+  Q = { list: items, idx: 0, mode: radio("mode"), results: [], start: Date.now() };
+  show("quiz");
+  loadQuestion();
+}
+
+function loadQuestion() {
+  const item = Q.list[Q.idx];
+  Q.cur = { item, missed: false, revealed: false, progress: null, firstWrong: "", done: false };
+  // progress: 順番入力の途中状態 { alt: 何番目の候補, step: 次に押すステップ番号 }
+  $("bar").style.width = (Q.idx / Q.list.length * 100) + "%";
+  $("qNum").textContent = `第 ${Q.idx + 1} 問 / ${Q.list.length}`;
+  updateScore();
+  $("qCat").textContent = item.cat;
+  $("qPri").textContent = "優先度 " + item.pri;
+  $("qText").textContent = item.op;
+  setStage("", "");
+  $("liveLbl").textContent = "このままキーボードでショートカットを押してください";
+  $("live").innerHTML = "";
+  $("askBtns").classList.remove("hidden");
+  $("hintBtn").disabled = false;
+  $("nextBtn").classList.add("hidden");
+  if (Q.mode === "practice") reveal(false); else $("answer").innerHTML = "";
+}
+function updateScore() {
+  const okCount = Q.results.filter(r => r.ok).length;
+  $("qScore").textContent = `一発正解 ${okCount} / ${Q.results.length}`;
+}
+
+function reveal(countAsMiss) {
+  const c = Q.cur;
+  if (countAsMiss) c.missed = true;
+  c.revealed = true;
+  $("hintBtn").disabled = true;
+  $("answer").innerHTML = `<div class="lbl">正解</div><div class="keys">${answerHtml(c.item)}</div>` +
+    (c.item.alts.some(a => a.length > 1) ? `<div class="muted">→ の順に1つずつ押します</div>` : "");
+}
+
+function setStage(cls, msg) {
+  $("stage").className = "stage" + (cls ? " " + cls : "");
+  $("msg").className = "msg" + (cls ? " " + cls : "");
+  $("msg").textContent = msg;
+}
+
+// 1問の判定が確定したら「次へ」を出す
+function finishQuestion(ok, skipped) {
+  const c = Q.cur;
+  if (c.done) return;
+  c.done = true;
+  Q.results.push({ item: c.item, ok, skipped: !!skipped, input: c.firstWrong });
+  if (Q.mode === "test") record(c.item, ok);
+  updateScore();
+  $("bar").style.width = ((Q.idx + 1) / Q.list.length * 100) + "%";
+  $("askBtns").classList.add("hidden");
+  const last = Q.idx + 1 >= Q.list.length;
+  $("nextBtn").innerHTML = (last ? "結果を見る" : "次へ") + ' <span class="sub">Enter</span>';
+  $("nextBtn").classList.remove("hidden");
+  $("liveLbl").textContent = ok ? "" : "正解のキーを押して練習できます（成績には影響しません）";
+}
+function nextQuestion() {
+  if (!Q.cur.done) return;
+  Q.idx++;
+  if (Q.idx >= Q.list.length) showResult(); else loadQuestion();
+}
+
+function keysHtml(text) { return text.split("+").map(x => kbd(x)).join('<span class="plus">+</span>'); }
+
+function onKey(e) {
+  if (!Q || $("quiz").classList.contains("hidden")) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const c = Q.cur;
+  if (!c) return;
+
+  if (e.key === "Process" || e.isComposing) { $("imeWarn").classList.remove("hidden"); return; }
+  $("imeWarn").classList.add("hidden");
+
+  const mods = modsFromEvent(e);
+  // 判定が終わった後は Enter だけで次へ
+  if (c.done && e.key === "Enter" && !mods.ctrl && !mods.alt && !mods.shift) { if (!e.repeat) nextQuestion(); return; }
+
+  const isMod = ["Control", "Alt", "Shift", "Meta"].includes(e.key);
+  if (isMod) { // 修飾キーだけ押している間は表示だけ更新
+    if (!c.progress) $("live").innerHTML = keysHtml(pressedText(e));
+    return;
+  }
+  if (e.repeat) return;
+
+  const tokens = tokensFromEvent(e);
+  const item = c.item;
+  const pressed = pressedText(e);
+
+  // 順番入力の途中
+  if (c.progress) {
+    const steps = item.alts[c.progress.alt];
+    const step = steps[c.progress.step];
+    if (stepMatches(step, tokens, mods, steps[0])) {
+      c.progress.step++;
+      renderProgress(steps, c.progress);
+      if (c.progress.step >= steps.length) { c.progress = null; return success(); }
+      return;
+    }
+    c.progress = null; // 途中で間違えた → 1手目として再判定
+  }
+
+  // 1手目
+  for (let a = 0; a < item.alts.length; a++) {
+    const steps = item.alts[a];
+    if (stepMatches(steps[0], tokens, mods)) {
+      if (steps.length === 1) { $("live").innerHTML = stepHtml(steps[0]); return success(); }
+      c.progress = { alt: a, step: 1 };
+      renderProgress(steps, c.progress);
+      return;
+    }
+  }
+
+  // 不正解
+  $("live").innerHTML = keysHtml(pressed);
+  if (c.done) { setStage("ng", "違います。下の正解を押してみてください"); return; }
+  if (!c.firstWrong) c.firstWrong = pressed;
+  reveal(true);
+  setStage("ng", "✕ 不正解");
+  finishQuestion(false);
+}
+
+function renderProgress(steps, p) {
+  $("live").innerHTML = steps.map((s, i) => stepHtml(s, i >= p.step)).join('<span class="then">→</span>');
+  setStage("", `続けて押してください（${p.step}/${steps.length}）`);
+}
+
+function success() {
+  const c = Q.cur;
+  if (c.done) { setStage("ok", "◯ その通り！ Enter で次へ"); return; }
+  const ok = !c.missed;
+  setStage("ok", ok ? "◯ 正解！" : "◯ OK（答えを見たので一発正解には数えません）");
+  if (!c.revealed) reveal(false);
+  finishQuestion(ok);
+}
+
+window.addEventListener("keydown", onKey, true);
+window.addEventListener("keyup", e => { if (Q && !$("quiz").classList.contains("hidden")) e.preventDefault(); }, true);
+
+$("hintBtn").onclick = () => { reveal(true); $("liveLbl").textContent = "正解のキーを押してください"; };
+$("skipBtn").onclick = () => {
+  if (Q.cur.done) return;
+  reveal(true); setStage("ng", "スキップしました"); finishQuestion(false, true);
+};
+$("nextBtn").onclick = nextQuestion;
+$("fsBtn").onclick = async () => {
+  try {
+    if (document.fullscreenElement) { await document.exitFullscreen(); return; }
+    await document.documentElement.requestFullscreen();
+    if (navigator.keyboard && navigator.keyboard.lock) {
+      await navigator.keyboard.lock().then(() => { $("fsBtn").textContent = "全画面を終了（キー固定中・Esc長押しでも終了）"; }).catch(() => {});
+    }
+  } catch (err) {
+    $("fsTip").classList.toggle("hidden");
+  }
+};
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement) $("fsBtn").textContent = "全画面＋キー固定";
+  else if ($("fsBtn").textContent === "全画面＋キー固定") $("fsBtn").textContent = "全画面を終了";
+});
+$("quitBtn").onclick = () => { if (Q.results.length) showResult(); else show("setup"); };
+// ボタンがキーボードで押されないようにフォーカスを外す
+document.querySelectorAll("#quiz button").forEach(b => b.addEventListener("mouseup", () => b.blur()));
+
+/* ---------- 結果 ---------- */
+function showResult() {
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  const res = Q.results, total = res.length, ok = res.filter(r => r.ok).length;
+  $("rScore").innerHTML = `${ok} <small>/ ${total}</small>`;
+  const sec = Math.round((Date.now() - Q.start) / 1000);
+  $("rTime").textContent = `${Math.floor(sec / 60)}分${sec % 60}秒` + (Q.mode === "practice" ? "（練習モード：成績は保存されません）" : "");
+  const wrong = res.filter(r => !r.ok);
+  $("rList").innerHTML = wrong.map(r => `<tr><td>${escapeHtml(r.item.op)}<br><span class="muted">${escapeHtml(r.item.cat)}</span></td>
+    <td class="k">${escapeHtml(r.item.disp)}</td>
+    <td class="k">${r.skipped ? '<span class="badge-skip">スキップ</span>' : `<span class="badge-ng">${escapeHtml(r.input || "（答えを表示）")}</span>`}</td></tr>`).join("");
+  $("rListCard").classList.toggle("hidden", wrong.length === 0);
+  $("retryWrongBtn").classList.toggle("hidden", wrong.length === 0);
+  Q.wrong = wrong.map(r => r.item);
+  Q.lastItems = res.map(r => r.item);
+  show("result");
+  $("bar").style.width = "100%";
+}
+$("retryWrongBtn").onclick = () => startSession(shuffle(Q.wrong.slice()));
+$("againBtn").onclick = () => startSession(buildList(pool()));
+$("backBtn").onclick = () => { show("setup"); updatePool(); };
+$("startBtn").onclick = () => startSession(buildList(pool()));
+
+function show(id) {
+  ["setup", "quiz", "result"].forEach(s => $(s).classList.toggle("hidden", s !== id));
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 読み込み ---------- */
+function onLoaded(rows) {
+  const r = buildItems(rows);
+  ITEMS = r.items;
+  initSetup(r.bad);
+}
+function onLoadError(err) {
+  // シートを読めないときは組み込みの一覧で動かす
+  onLoaded(FALLBACK_RAW.map(r => ({ cat: r[0], op: r[1], disp: r[2], pri: r[4] })));
+  $("hdrMeta").textContent += " ／ ※シートを読み込めなかったため組み込みの一覧を使用中";
+  console.warn(err);
+}
+const API_URL = "https://script.google.com/macros/s/AKfycby-9uc-hcujiulhVX05QdWtHJAjFHJJPVQL3nWAlwdtUit5nIXww0az8p5kwUYDl0s1NQ/exec?format=json";
+if (typeof google !== "undefined" && google.script && google.script.run) {
+  google.script.run.withSuccessHandler(onLoaded).withFailureHandler(onLoadError).getShortcuts();
+} else {
+  fetch(API_URL).then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(rows => { if (!Array.isArray(rows) || !rows.length) throw new Error("empty"); onLoaded(rows); })
+    .catch(onLoadError);
+}
+</script>
+</body>
+</html>
